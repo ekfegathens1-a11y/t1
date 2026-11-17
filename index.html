@@ -1,0 +1,1443 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ΕΚΦΕ Αγ. Αναργύρων - Εργαστήριο Φυσικής V(i) &amp; i(V)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9;
+            color: #0f172a;
+        }
+        .tab-active {
+            background-color: #1d4ed8;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(29, 78, 216, 0.25);
+        }
+        .tab-inactive {
+            background-color: #ffffff;
+            color: #334155;
+            border: 1px solid #cbd5e1;
+        }
+        .tab-inactive:hover {
+            background-color: #f8fafc;
+            border-color: #94a3b8;
+        }
+        canvas {
+            touch-action: manipulation;
+        }
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                background-color: #ffffff;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Κεφαλίδα ΕΚΦΕ Αγ. Αναργύρων -->
+    <header class="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white shadow-lg border-b border-blue-800/40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="flex items-center gap-3.5 text-center sm:text-left">
+                <div class="w-11 h-11 rounded-xl bg-blue-600/20 border border-blue-400/30 flex items-center justify-center shrink-0">
+                    <svg class="w-6 h-6 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-base sm:text-xl font-extrabold tracking-tight text-white">
+                        ΕΚΦΕ Αγ.Αναργύρων-Χρήστος Γεωργόπουλος Φυσικός MSc
+                    </h1>
+                    <p class="text-xs sm:text-sm text-blue-200/90 font-medium mt-0.5">
+                        Διαδραστικό Εργαστήριο Ηλεκτρισμού &amp; Χαρακτηριστικών Καμπυλών V(i) / i(V)
+                    </p>
+                </div>
+            </div>
+            <div class="text-xs bg-white/10 border border-white/15 px-3 py-1.5 rounded-full text-blue-100 font-medium">
+                Εργαστηριακή Ανάλυση Μετρήσεων
+            </div>
+        </div>
+    </header>
+
+    <!-- Κύριο Περιεχόμενο -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- Πλαίσιο Μηνυμάτων Σφάλματος / Ενημέρωσης (αντί για alert) -->
+        <div id="status-banner" class="hidden mb-5 p-4 rounded-xl border text-sm font-medium flex items-center justify-between gap-3 shadow-sm">
+            <div class="flex items-center gap-2.5">
+                <span id="status-icon" class="text-lg">⚠️</span>
+                <span id="status-text"></span>
+            </div>
+            <button type="button" onclick="hideMessage()" class="text-xs uppercase tracking-wider font-bold px-2.5 py-1 rounded-lg bg-black/5 hover:bg-black/10 transition">
+                Κλείσιμο
+            </button>
+        </div>
+
+        <!-- Επιλογή Εργαστηριακής Άσκησης (Tabs) -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6 no-print">
+            <button type="button" id="tab-dipole" onclick="switchMode('dipole')" class="tab-active py-3.5 px-4 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/>
+                </svg>
+                <span>1. Ταυτοποίηση Διπόλου V(i) &amp; i(V)</span>
+            </button>
+            <button type="button" id="tab-emf" onclick="switchMode('emf')" class="tab-inactive py-3.5 px-4 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+                <span>2. ΗΕΔ (Ε) &amp; Εσωτ. Αντίσταση (r) Πηγής</span>
+            </button>
+            <button type="button" id="tab-worksheet" onclick="switchMode('worksheet')" class="tab-inactive py-3.5 px-4 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                <span>3. Φύλλο Εργασίας (5 Μετρήσεων)</span>
+            </button>
+        </div>
+
+        <!-- ΕΝΟΤΗΤΑ ΦΥΛΛΟΥ ΕΡΓΑΣΙΑΣ (3η Καρτέλα) -->
+        <div id="worksheet-container" class="hidden space-y-6">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8">
+                <!-- Κεφαλίδα Φύλλου Εργασίας -->
+                <div class="border-b-2 border-slate-800 pb-4 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <div class="text-xs font-bold uppercase tracking-wider text-blue-700">ΕΚΦΕ Αγ. Αναργύρων — Εργαστηριακός Οδηγός Φυσικής</div>
+                        <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 mt-1">Φύλλο Εργασίας: Χαρακτηριστική Διπόλου &amp; ΗΕΔ Πηγής (5 Μετρήσεις)</h2>
+                    </div>
+                    <button type="button" onclick="window.print()" class="py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-bold shadow-sm transition flex items-center gap-2 cursor-pointer no-print shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                        </svg>
+                        <span>Εκτύπωση Φύλλου Εργασίας</span>
+                    </button>
+                </div>
+
+                <!-- Στοιχεία Ομάδας Μαθητών -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 p-4 rounded-xl bg-slate-50 border border-slate-200 text-sm">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Ονοματεπώνυμα Ομάδας</label>
+                        <input type="text" placeholder="...................................................." class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Τμήμα / Τάξη</label>
+                        <input type="text" placeholder=".........................." class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Ημερομηνία</label>
+                        <input type="text" placeholder=".... / .... / 202..." class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-sm">
+                    </div>
+                </div>
+
+                <!-- ΜΕΡΟΣ Α: ΔΙΠΟΛΟ -->
+                <div class="mb-8">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <h3 class="text-base sm:text-lg font-extrabold text-blue-900 bg-blue-50 px-3.5 py-1.5 rounded-lg border border-blue-200">
+                            Μέρος Α΄: Πειραματική Μελέτη &amp; Ταυτοποίηση Διπόλου (5 Μετρήσεις)
+                        </h3>
+                        <button type="button" onclick="transferWorksheetToLab('dipole')" class="text-xs font-bold px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition cursor-pointer no-print">
+                            Μεταφορά στο Γράφημα →
+                        </button>
+                    </div>
+                    <p class="text-xs sm:text-sm text-slate-700 mb-3 leading-relaxed">
+                        <strong>Πορεία εκτέλεσης:</strong> Συναρμολογήστε το κύκλωμα με πηγή μεταβλητής τάσης, αμπερόμετρο σε σειρά και βολτόμετρο παράλληλα στα άκρα του διπόλου. Καταγράψτε <strong>5 ζεύγη τιμών</strong> έντασης <em>i</em> και τάσης <em>V</em>.
+                    </p>
+
+                    <div class="overflow-x-auto mb-4">
+                        <table class="w-full border-collapse border border-slate-400 text-sm text-center">
+                            <thead>
+                                <tr class="bg-slate-100 font-bold text-slate-800">
+                                    <th class="border border-slate-400 py-2 px-3 w-36">Μέτρηση</th>
+                                    <th class="border border-slate-400 py-2 px-3">1η</th>
+                                    <th class="border border-slate-400 py-2 px-3">2η</th>
+                                    <th class="border border-slate-400 py-2 px-3">3η</th>
+                                    <th class="border border-slate-400 py-2 px-3">4η</th>
+                                    <th class="border border-slate-400 py-2 px-3">5η</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="border border-slate-400 py-2 px-3 font-bold bg-slate-50">Ένταση i (A ή mA)</td>
+                                    <td class="border border-slate-400 p-1"><input id="ws-dip-i-0" type="number" step="any" class="w-full text-center py-1 focus:outline-none"></td>
+                                    <td class="border border-slate-400 p-1"><input id="ws-dip-i-1" type="number" step="any" class="w-full text-center py-1 focus:outline-none"></td>
+                                    <td class="border border-slate-400 p-1"><input id="ws-dip-i-2" type="number" step="any" class="w-full text-center py-1 focus:outline-none"></td>
+                                    <td class="border border-slate-400 p-1"><input id="ws-dip-i-3" type="number" step="any" class="w-full text-center py-1 focus:outline-none"></td>
+                                    <td class="border border-slate-400 p-1"><input id="ws-dip-i-4" type="number" step="any" class="w-full text-center py-1 focus:outline-none"></td>
+                                </tr>
+                                <tr>
+                                    <td class="border border-slate-400 py-2 px-3 font-bold bg-slate-50">Τάση V (V)</td>
+                                    <td class="border border-slate-400 p-1"><input id="ws-dip-v-0" type="number" step="any" class="w-full text-center py-1 focus:outline-none"></td>
+                                    <td class="border border-slate-400 p-1"><input id="ws-dip-v-1" type="number" step="any" class="w-full text-center py-1 focus:outline-none"></td>
+                                    <td class="border border-slate-400 p-1"><input id="ws-dip-v-2" type="number" step="any" class="w-full text-center py-1 focus:outline-none"></td>
+                                    <td class="border border-slate-400 p-1"><input id="ws-dip-v-3" type="number" step="any" class="w-full text-center py-1 focus:outline-none"></td>
+                                    <td class="border border-slate-400 p-1"><input id="ws-dip-v-4" type="number" step="any" class="w-full text-center py-1 focus:outline-none"></td>
+                                </tr>
+                                <tr>
+                                    <td class="border border-slate-400 py-2 px-3 font-bold bg-slate-50">Λόγος V / i (Ω)</td>
+                                    <td class="border border-slate-400 p-1"><input type="text" class="w-full text-center py-1 focus:outline-none"></td>
+                                    <td class="border border-slate-400 p-1"><input type="text" class="w-full text-center py-1 focus:outline-none"></td>
+                                    <td class="border border-slate-400 p-1"><input type="text" class="w-full text-center py-1 focus:outline-none"></td>
+                                    <td class="border border-slate-400 p-1"><input type="text" class="w-full text-center py-1 focus:outline-none"></td>
+                                    <td class="border border-slate-400 p-1"><input type="text" class="w-full text-center py-1 focus:outline-none"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-slate-50 border border-slate-300 space-y-2.5 text-xs sm:text-sm">
+                        <div class="font-bold text-slate-800">Ερωτήσεις &amp; Συμπεράσματα Μέρους Α΄:</div>
+                        <div class="flex flex-wrap items-center gap-4">
+                            <span>1. Είδος διπόλου από τη γραφική παράσταση V(i) ή i(V):</span>
+                            <label class="inline-flex items-center gap-1.5"><input type="checkbox"> Ωμικός Αντιστάτης</label>
+                            <label class="inline-flex items-center gap-1.5"><input type="checkbox"> Κρυσταλλοδίοδος / LED</label>
+                            <label class="inline-flex items-center gap-1.5"><input type="checkbox"> Λαμπτήρας Πυρακτώσεως</label>
+                        </div>
+                        <div>
+                            <span>2. Αιτιολόγηση (μορφή καμπύλης &amp; μεταβολή λόγου V/i): </span>
+                            <input type="text" placeholder="................................................................................................................................................" class="w-full mt-1 bg-white border border-slate-300 rounded px-2.5 py-1">
+                        </div>
+                        <div>
+                            <span>3. Αν είναι ωμικός αντιστάτης, υπολογίστε την αντίσταση από την κλίση: <strong>R = ................ Ω</strong> (ή τάση κατωφλίου LED: <strong>V<sub>γ</sub> = ................ V</strong>)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ΜΕΡΟΣ Β: ΗΕΔ ΚΑΙ ΕΣΩΤΕΡΙΚΗ ΑΝΤΙΣΤΑΣΗ ΠΗΓΗΣ -->
+                <div>
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <h3 class="text-base sm:text-lg font-extrabold text-indigo-900 bg-indigo-50 px-3.5 py-1.5 rounded-lg border border-indigo-200">
+                            Μέρος Β΄: Προσδιορισμός ΗΕΔ (Ε) &amp; Εσωτερικής Αντίστασης (r) Πηγής (5 Μετρήσεις)
+                        </h3>
+                        <button type="button" onclick="transferWorksheetToLab('emf')" class="text-xs font-bold px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition cursor-pointer no-print">
+                            Μεταφορά στο Γράφημα →
+                        </button>
+                    </div>
+                    <p class="text-xs sm:text-sm text-slate-700 mb-3 leading-relaxed">
+                        <strong>Πορεία εκτέλεσης:</strong> Συνδέστε την υπό μελέτη ηλεκτρική πηγή σε σειρά με αμπερόμετρο και ροοστάτη, και τοποθετήστε το βολτόμετρο παράλληλα στους πόλους της πηγής. Μεταβάλλοντας τον ροοστάτη, πάρτε <strong>5 μετρήσεις</strong> (<em>i</em>, <em>V<sub>πολ</sub></em>).
+                    </p>
+
+                    <div class="overflow-x-auto mb-4">
+                        <table class="w-full border-collapse border border-slate-400 text-sm text-center">
+                            <thead>
+                                <tr class="bg-slate-100 font-bold text-slate-800">
+                                    <th class="border border-slate-400 py-2 px-3 w-36">Μέτρηση</th>
+                                    <th class="border border-slate-400 py-2 px-3">1η</th>
+                                    <th class="border border-slate-400 py-2 px-3">2η</th>
+                                    <th class="border border-slate-400 py-2 px-3">3η</th>
+                                    <th class="border border-slate-400 py-2 px-3">4η</th>
+                                    <th class="border border-slate-400 py-2 px-3">5η</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="border border-slate-400 py-2 px-3 font-bold bg-slate-50">Ένταση i (A)</td>
+                                    <td class="border border-slate-400 p-1"><input id="ws-emf-i-0" type="number" step="any" class="w-full text-center py-1 focus:outline-none"></td>
+                                    <td class="border border-slate-400 p-1"><input id="ws-emf-i-1" type="number" step="any" class="w-full text-center py-1 focus:outline-none"></td>
+                                    <td class="border border-slate-400 p-1"><input id="ws-emf-i-2" type="number" step="any" class="w-full text-center py-1 focus:outline-none"></td>
+                                    <td class="border border-slate-400 p-1"><input id="ws-emf-i-3" type="number" step="any" class="w-full text-center py-1 focus:outline-none"></td>
+                                    <td class="border border-slate-400 p-1"><input id="ws-emf-i-4" type="number" step="any" class="w-full text-center py-1 focus:outline-none"></td>
+                                </tr>
+                                <tr>
+                                    <td class="border border-slate-400 py-2 px-3 font-bold bg-slate-50">Πολική Τάση V (V)</td>
+                                    <td class="border border-slate-400 p-1"><input id="ws-emf-v-0" type="number" step="any" class="w-full text-center py-1 focus:outline-none"></td>
+                                    <td class="border border-slate-400 p-1"><input id="ws-emf-v-1" type="number" step="any" class="w-full text-center py-1 focus:outline-none"></td>
+                                    <td class="border border-slate-400 p-1"><input id="ws-emf-v-2" type="number" step="any" class="w-full text-center py-1 focus:outline-none"></td>
+                                    <td class="border border-slate-400 p-1"><input id="ws-emf-v-3" type="number" step="any" class="w-full text-center py-1 focus:outline-none"></td>
+                                    <td class="border border-slate-400 p-1"><input id="ws-emf-v-4" type="number" step="any" class="w-full text-center py-1 focus:outline-none"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-slate-50 border border-slate-300 space-y-2 text-xs sm:text-sm">
+                        <div class="font-bold text-slate-800">Ερωτήσεις &amp; Υπολογισμοί Μέρους Β΄ (V<sub>πολ</sub> = E - i · r):</div>
+                        <div>1. Από την προέκταση της ευθείας V(i) στον κατακόρυφο άξονα (για i = 0), η ΗΕΔ της πηγής είναι: <strong>E = ................ V</strong></div>
+                        <div>2. Από την κλίση της ευθείας (r = |ΔV / Δi|), η εσωτερική αντίσταση της πηγής είναι: <strong>r = ................ Ω</strong></div>
+                        <div>3. Το θεωρητικό ρεύμα βραχυκύκλωσης (για V<sub>πολ</sub> = 0) υπολογίζεται: <strong>I<sub>βρ</sub> = E / r = ................ A</strong></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Διάταξη 2 Στηλών (Αριστερά: Δεδομένα & Κύκλωμα | Δεξιά: Γράφημα & Συμπεράσματα) -->
+        <div id="lab-workspace" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+            <!-- ΑΡΙΣΤΕΡΗ ΣΤΗΛΗ (5/12): Εισαγωγή Μετρήσεων & Συνδεσμολογία -->
+            <div class="lg:col-span-5 flex flex-col gap-6">
+
+                <!-- Κάρτα 1: Πίνακας Μετρήσεων -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                        <h2 id="table-title" class="text-base sm:text-lg font-bold text-slate-800">
+                            Μετρήσεις Διπόλου (i, V)
+                        </h2>
+                        <!-- Επιλογή μονάδας έντασης ρεύματος -->
+                        <div class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-lg border border-slate-200 no-print">
+                            <span class="text-xs font-medium text-slate-600 pl-1.5">Μονάδα i:</span>
+                            <select id="current-unit" onchange="handleUnitChange()" class="text-xs font-bold bg-white text-blue-700 border border-slate-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="A">A (Αμπέρ)</option>
+                                <option value="mA">mA (Μιλιαμπέρ)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Οδηγία Εργαστηριακής Καταχώρισης -->
+                    <div class="mb-3.5 p-2.5 rounded-xl bg-blue-50/80 border border-blue-100 text-xs text-blue-900 flex items-start gap-2 no-print">
+                        <span class="text-sm leading-none mt-0.5">🔬</span>
+                        <span>Πληκτρολογήστε <strong>5 έως 8 ζεύγη</strong> ενδείξεων οργάνων (<em>i</em>, <em>V</em>) στον πίνακα. Πατήστε <strong>Enter</strong> για γρήγορη μετάβαση στο επόμενο πεδίο.</span>
+                    </div>
+
+                    <!-- Πίνακας 5 έως 8 γραμμών -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b-2 border-slate-200 text-xs font-bold text-slate-600 uppercase">
+                                    <th class="py-2 px-2 w-12 text-center">α/α</th>
+                                    <th class="py-2 px-2">Ένταση i (<span id="th-unit-i">A</span>)</th>
+                                    <th class="py-2 px-2">Τάση V (V)</th>
+                                    <th class="py-2 px-2 text-right text-slate-400">Λόγος V/i</th>
+                                </tr>
+                            </thead>
+                            <tbody id="measurements-tbody" class="divide-y divide-slate-100 text-sm">
+                                <!-- Δημιουργείται δυναμικά από JS -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Κουμπιά επιλογής 5, 6, 7 ή 8 μετρήσεων & Καθαρισμού -->
+                    <div class="mt-4 flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-slate-100 no-print">
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-xs font-semibold text-slate-500 mr-1">Μετρήσεις:</span>
+                            <button type="button" onclick="setRowCount(5)" id="btn-rows-5" class="text-xs font-bold px-2.5 py-1.5 rounded-lg border transition cursor-pointer">5</button>
+                            <button type="button" onclick="setRowCount(6)" id="btn-rows-6" class="text-xs font-bold px-2.5 py-1.5 rounded-lg border transition cursor-pointer">6</button>
+                            <button type="button" onclick="setRowCount(7)" id="btn-rows-7" class="text-xs font-bold px-2.5 py-1.5 rounded-lg border transition cursor-pointer">7</button>
+                            <button type="button" onclick="setRowCount(8)" id="btn-rows-8" class="text-xs font-bold px-2.5 py-1.5 rounded-lg border transition cursor-pointer">8</button>
+                        </div>
+                        <button type="button" onclick="clearInputs()" class="text-xs font-semibold px-3 py-1.5 rounded-lg text-red-600 bg-red-50/70 hover:bg-red-100 border border-red-200 transition cursor-pointer">
+                            Καθαρισμός Μετρήσεων
+                        </button>
+                    </div>
+
+                    <button type="button" onclick="analyzeData()" class="mt-4 w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold rounded-xl shadow-md shadow-blue-600/20 transition flex items-center justify-center gap-2 cursor-pointer no-print">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                        </svg>
+                        <span>Σχεδίαση Γραφήματος &amp; Ανάλυση</span>
+                    </button>
+
+                    <!-- Δευτερεύον Αναπτυσσόμενο Μενού για Ενδεικτικές Τιμές (Προαιρετικό) -->
+                    <details class="mt-3 pt-2.5 border-t border-slate-100 text-xs no-print">
+                        <summary class="cursor-pointer font-medium text-slate-500 hover:text-slate-700 select-none">
+                            ▸ Φόρτωση ενδεικτικών τιμών (προαιρετικό παράδειγμα)
+                        </summary>
+                        <div id="presets-dipole" class="mt-2.5 grid grid-cols-3 gap-2">
+                            <button type="button" onclick="loadPreset('resistor')" class="text-xs font-semibold py-2 px-2 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition cursor-pointer">
+                                Ωμικός Αντιστάτης
+                            </button>
+                            <button type="button" onclick="loadPreset('led')" class="text-xs font-semibold py-2 px-2 rounded-lg bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition cursor-pointer">
+                                Δίοδος / LED
+                            </button>
+                            <button type="button" onclick="loadPreset('bulb')" class="text-xs font-semibold py-2 px-2 rounded-lg bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 transition cursor-pointer">
+                                Λαμπτήρας Πυρακτ.
+                            </button>
+                        </div>
+                        <div id="presets-emf" class="hidden mt-2.5 grid grid-cols-2 gap-2">
+                            <button type="button" onclick="loadPreset('battery1')" class="text-xs font-semibold py-2 px-3 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 transition cursor-pointer">
+                                Στοιχείο 4.5V (r ≈ 1.5Ω)
+                            </button>
+                            <button type="button" onclick="loadPreset('battery2')" class="text-xs font-semibold py-2 px-3 rounded-lg bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 transition cursor-pointer">
+                                Μπαταρία 9V (r ≈ 2.2Ω)
+                            </button>
+                        </div>
+                    </details>
+                </div>
+
+                <!-- Κάρτα 2: Συνδεσμολογία Κυκλώματος (SVG) -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 id="circuit-title" class="text-base font-bold text-slate-800">
+                            Συνδεσμολογία Μέτρησης Διπόλου
+                        </h3>
+                        <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600">
+                            Διάγραμμα Κυκλώματος
+                        </span>
+                    </div>
+                    <div id="circuit-svg-container" class="w-full bg-slate-50 rounded-xl border border-slate-200 p-2 flex items-center justify-center overflow-hidden">
+                        <!-- Το SVG σχεδιάζεται δυναμικά ανάλογα με την άσκηση -->
+                    </div>
+                    <p id="circuit-desc" class="mt-3 text-xs text-slate-600 leading-relaxed">
+                        Το αμπερόμετρο (A) συνδέεται <strong>σε σειρά</strong> με το δίπολο για τη μέτρηση της έντασης <em>i</em>, ενώ το βολτόμετρο (V) συνδέεται <strong>παράλληλα</strong> στα άκρα του για τη μέτρηση της τάσης <em>V</em>.
+                    </p>
+                </div>
+
+            </div>
+
+            <!-- ΔΕΞΙΑ ΣΤΗΛΗ (7/12): Γραφική Παράσταση V(i) / i(V) & Συμπεράσματα -->
+            <div class="lg:col-span-7 flex flex-col gap-6">
+
+                <!-- Κάρτα 3: Γραφική Παράσταση -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <div>
+                            <h2 id="graph-title" class="text-base sm:text-lg font-bold text-slate-800">
+                                Χαρακτηριστική Καμπύλη Διπόλου V = f(i)
+                            </h2>
+                            <p id="graph-subtitle" class="text-xs text-slate-500">Οριζόντιος άξονας: Ένταση ρεύματος i | Κατακόρυφος άξονας: Τάση V</p>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <!-- Επιλογή V(i) ή i(V) για την ταυτοποίηση διπόλου -->
+                            <div id="axis-toggle-group" class="inline-flex rounded-lg bg-slate-100 p-1 border border-slate-200 no-print">
+                                <button type="button" id="btn-axis-vi" onclick="setGraphAxes('V_of_i')" class="px-2.5 py-1 text-xs font-bold rounded-md bg-blue-600 text-white shadow-xs transition cursor-pointer">
+                                    Διάγραμμα V(i)
+                                </button>
+                                <button type="button" id="btn-axis-iv" onclick="setGraphAxes('i_of_V')" class="px-2.5 py-1 text-xs font-bold rounded-md text-slate-600 hover:text-slate-900 transition cursor-pointer">
+                                    Διάγραμμα i(V)
+                                </button>
+                            </div>
+                            <div class="flex items-center gap-3 text-xs font-medium ml-1">
+                                <span class="flex items-center gap-1.5">
+                                    <span class="w-3 h-3 rounded-full bg-blue-600 inline-block"></span> Σημεία
+                                </span>
+                                <span class="flex items-center gap-1.5">
+                                    <span class="w-4 h-0.5 bg-rose-500 inline-block"></span> Καμπύλη
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="canvas-wrapper" class="relative w-full h-72 sm:h-80 md:h-96 bg-slate-50/70 rounded-xl border border-slate-200 overflow-hidden">
+                        <canvas id="physics-canvas" class="w-full h-full block"></canvas>
+                    </div>
+                </div>
+
+                <!-- Κάρτα 4: Πόρισμα & Μαθηματική Ανάλυση -->
+                <div id="results-card" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold">
+                                Σ
+                            </div>
+                            <h3 class="text-base sm:text-lg font-bold text-slate-800">
+                                Εργαστηριακό Συμπέρασμα &amp; Υπολογισμοί
+                            </h3>
+                        </div>
+                        <button type="button" onclick="window.print()" class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition flex items-center gap-1.5 cursor-pointer no-print">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                            </svg>
+                            <span>Εκτύπωση / Αποθήκευση Αναφοράς</span>
+                        </button>
+                    </div>
+
+                    <div id="analysis-output" class="space-y-4">
+                        <!-- Συμπληρώνεται δυναμικά από τη JS -->
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Υποσέλιδο -->
+    <footer class="bg-white border-t border-slate-200 py-4 mt-8 text-center text-xs text-slate-500">
+        ΕΚΦΕ Αγ. Αναργύρων — Χρήστος Γεωργόπουλος, Φυσικός MSc | Εκπαιδευτικό Εργαλείο Εργαστηριακής Φυσικής
+    </footer>
+
+    <script>
+        // =========================================================================
+        // ΚΑΤΑΣΤΑΣΗ ΕΦΑΡΜΟΓΗΣ (STATE)
+        // =========================================================================
+        let currentMode = 'dipole'; // 'dipole', 'emf', ή 'worksheet'
+        let graphAxes = 'V_of_i';   // 'V_of_i' ή 'i_of_V' (για δίπολο)
+        let rowCount = 5;           // Επιτρέπονται 5 έως 8 μετρήσεις
+        let currentUnit = 'A';      // 'A' ή 'mA'
+        let lastAnalysis = null;    // Αποθηκεύει τα αποτελέσματα για redraw
+
+        // =========================================================================
+        // ΜΗΝΥΜΑΤΑ ΕΝΗΜΕΡΩΣΗΣ / ΣΦΑΛΜΑΤΟΣ (ΧΩΡΙΣ alert)
+        // =========================================================================
+        function showMessage(text, type = 'error') {
+            const banner = document.getElementById('status-banner');
+            const icon = document.getElementById('status-icon');
+            const msg = document.getElementById('status-text');
+            if (!banner || !icon || !msg) return;
+
+            banner.classList.remove('hidden', 'bg-red-50', 'border-red-200', 'text-red-800', 'bg-amber-50', 'border-amber-200', 'text-amber-800', 'bg-emerald-50', 'border-emerald-200', 'text-emerald-800');
+            if (type === 'error') {
+                banner.classList.add('bg-red-50', 'border-red-200', 'text-red-800');
+                icon.textContent = '⚠️';
+            } else if (type === 'warning') {
+                banner.classList.add('bg-amber-50', 'border-amber-200', 'text-amber-800');
+                icon.textContent = 'ℹ️';
+            } else {
+                banner.classList.add('bg-emerald-50', 'border-emerald-200', 'text-emerald-800');
+                icon.textContent = '✅';
+            }
+            msg.textContent = text;
+        }
+
+        function hideMessage() {
+            const banner = document.getElementById('status-banner');
+            if (banner) banner.classList.add('hidden');
+        }
+
+        // =========================================================================
+        // ΕΝΑΛΛΑΓΗ ΑΞΟΝΩΝ V(i) ΚΑΙ i(V) ΣΤΗ ΜΕΛΕΤΗ ΔΙΠΟΛΟΥ
+        // =========================================================================
+        function setGraphAxes(axesMode) {
+            graphAxes = axesMode;
+            const btnVi = document.getElementById('btn-axis-vi');
+            const btnIv = document.getElementById('btn-axis-iv');
+
+            if (axesMode === 'V_of_i') {
+                if (btnVi) btnVi.className = 'px-2.5 py-1 text-xs font-bold rounded-md bg-blue-600 text-white shadow-xs transition cursor-pointer';
+                if (btnIv) btnIv.className = 'px-2.5 py-1 text-xs font-bold rounded-md text-slate-600 hover:text-slate-900 transition cursor-pointer';
+                document.getElementById('graph-title').textContent = 'Χαρακτηριστική Καμπύλη Διπόλου V = f(i)';
+                document.getElementById('graph-subtitle').textContent = 'Οριζόντιος άξονας: Ένταση ρεύματος i | Κατακόρυφος άξονας: Τάση V';
+            } else {
+                if (btnIv) btnIv.className = 'px-2.5 py-1 text-xs font-bold rounded-md bg-blue-600 text-white shadow-xs transition cursor-pointer';
+                if (btnVi) btnVi.className = 'px-2.5 py-1 text-xs font-bold rounded-md text-slate-600 hover:text-slate-900 transition cursor-pointer';
+                document.getElementById('graph-title').textContent = 'Χαρακτηριστική Καμπύλη Διπόλου i = f(V)';
+                document.getElementById('graph-subtitle').textContent = 'Οριζόντιος άξονας: Τάση V | Κατακόρυφος άξονας: Ένταση ρεύματος i';
+            }
+
+            if (lastAnalysis) {
+                drawGraph(lastAnalysis);
+            } else {
+                drawEmptyGrid();
+            }
+        }
+
+        // =========================================================================
+        // ΕΝΑΛΛΑΓΗ ΛΕΙΤΟΥΡΓΙΑΣ (ΔΙΠΟΛΟ / ΗΕΔ ΠΗΓΗΣ / ΦΥΛΛΟ ΕΡΓΑΣΙΑΣ)
+        // =========================================================================
+        function switchMode(mode, keepData = false) {
+            currentMode = mode;
+            hideMessage();
+
+            const tabDipole = document.getElementById('tab-dipole');
+            const tabEmf = document.getElementById('tab-emf');
+            const tabWorksheet = document.getElementById('tab-worksheet');
+            const labWorkspace = document.getElementById('lab-workspace');
+            const worksheetContainer = document.getElementById('worksheet-container');
+            const presetsDipole = document.getElementById('presets-dipole');
+            const presetsEmf = document.getElementById('presets-emf');
+            const axisToggleGroup = document.getElementById('axis-toggle-group');
+
+            const activeCls = 'tab-active py-3.5 px-4 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer';
+            const inactiveCls = 'tab-inactive py-3.5 px-4 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer';
+
+            tabDipole.className = mode === 'dipole' ? activeCls : inactiveCls;
+            tabEmf.className = mode === 'emf' ? activeCls : inactiveCls;
+            tabWorksheet.className = mode === 'worksheet' ? activeCls : inactiveCls;
+
+            if (mode === 'worksheet') {
+                labWorkspace.classList.add('hidden');
+                worksheetContainer.classList.remove('hidden');
+                return;
+            } else {
+                worksheetContainer.classList.add('hidden');
+                labWorkspace.classList.remove('hidden');
+            }
+
+            if (mode === 'dipole') {
+                presetsDipole.classList.remove('hidden');
+                presetsEmf.classList.add('hidden');
+                axisToggleGroup.classList.remove('hidden');
+
+                document.getElementById('table-title').textContent = 'Μετρήσεις Διπόλου (i, V)';
+                document.getElementById('circuit-title').textContent = 'Συνδεσμολογία Μέτρησης Διπόλου';
+                document.getElementById('circuit-desc').textContent = 'Πηγή μεταβλητής τάσης τροφοδοτεί το υπό εξέταση δίπολο. Το αμπερόμετρο (A) είναι σε σειρά και το βολτόμετρο (V) παράλληλα.';
+                setGraphAxes(graphAxes);
+                renderCircuitSVG('dipole');
+            } else {
+                presetsEmf.classList.remove('hidden');
+                presetsDipole.classList.add('hidden');
+                axisToggleGroup.classList.add('hidden');
+                graphAxes = 'V_of_i';
+
+                document.getElementById('table-title').textContent = 'Μετρήσεις Πηγής (i, Vπολ)';
+                document.getElementById('circuit-title').textContent = 'Κύκλωμα Μέτρησης ΗΕΔ (Ε) & Εσωτερικής Αντίστασης (r)';
+                document.getElementById('circuit-desc').textContent = 'Μεταβάλλουμε την εξωτερική αντίσταση (ροοστάτης R) και καταγράφουμε την ένταση i και την πολική τάση V στους πόλους της πηγής.';
+                document.getElementById('graph-title').textContent = 'Χαρακτηριστική Πηγής V = E - i·r';
+                document.getElementById('graph-subtitle').textContent = 'Οριζόντιος άξονας: Ένταση ρεύματος i | Κατακόρυφος άξονας: Πολική Τάση V';
+
+                renderCircuitSVG('emf');
+            }
+
+            if (!keepData) {
+                buildTableRows(null);
+                resetAnalysisOutput();
+                const firstInput = document.getElementById('input-i-0');
+                if (firstInput) firstInput.focus();
+            }
+        }
+
+        // Μεταφορά των 5 μετρήσεων από το Φύλλο Εργασίας στο Εργαστήριο για Γράφημα
+        function transferWorksheetToLab(targetMode) {
+            const rows = [];
+            for (let k = 0; k < 5; k++) {
+                const iEl = document.getElementById(`ws-${targetMode === 'dipole' ? 'dip' : 'emf'}-i-${k}`);
+                const vEl = document.getElementById(`ws-${targetMode === 'dipole' ? 'dip' : 'emf'}-v-${k}`);
+                rows.push({
+                    i: iEl ? iEl.value : '',
+                    v: vEl ? vEl.value : ''
+                });
+            }
+            rowCount = 5;
+            switchMode(targetMode, true);
+            buildTableRows(rows);
+            analyzeData();
+        }
+
+        function resetAnalysisOutput() {
+            lastAnalysis = null;
+            drawEmptyGrid();
+            const out = document.getElementById('analysis-output');
+            if (out) {
+                out.innerHTML = `
+                    <div class="p-4 rounded-xl bg-slate-50 border border-dashed border-slate-300 text-sm text-slate-600">
+                        <p class="font-medium text-slate-700 mb-1">Αναμονή εργαστηριακών μετρήσεων...</p>
+                        <p class="text-xs text-slate-500">Συμπληρώστε <strong>5 έως 8 ζεύγη</strong> τιμών έντασης <strong>i</strong> και τάσης <strong>V</strong> στον πίνακα αριστερά και πατήστε <strong>«Σχεδίαση Γραφήματος & Ανάλυση»</strong>.</p>
+                    </div>
+                `;
+            }
+        }
+
+        // =========================================================================
+        // ΔΙΑΧΕΙΡΙΣΗ ΠΙΝΑΚΑ ΜΕΤΡΗΣΕΩΝ (5 ΕΩΣ 8 ΓΡΑΜΜΕΣ) & ΠΛΟΗΓΗΣΗ ENTER
+        // =========================================================================
+        function buildTableRows(dataRows = null) {
+            const tbody = document.getElementById('measurements-tbody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            for (let idx = 0; idx < rowCount; idx++) {
+                const valI = dataRows && dataRows[idx] ? dataRows[idx].i : '';
+                const valV = dataRows && dataRows[idx] ? dataRows[idx].v : '';
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50/80 transition';
+                tr.innerHTML = `
+                    <td class="py-2 px-2 text-center font-bold text-slate-400">${idx + 1}</td>
+                    <td class="py-1.5 px-2">
+                        <input type="number" step="any" id="input-i-${idx}" value="${valI}" placeholder="π.χ. ${(0.1 * (idx + 1)).toFixed(1)}"
+                            oninput="updateRowRatio(${idx})"
+                            onkeydown="handleInputKeydown(event, 'i', ${idx})"
+                            class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </td>
+                    <td class="py-1.5 px-2">
+                        <input type="number" step="any" id="input-v-${idx}" value="${valV}" placeholder="π.χ. ${(1.5 * (idx + 1)).toFixed(1)}"
+                            oninput="updateRowRatio(${idx})"
+                            onkeydown="handleInputKeydown(event, 'v', ${idx})"
+                            class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </td>
+                    <td id="ratio-${idx}" class="py-2 px-2 text-right font-mono text-xs text-slate-500">
+                        —
+                    </td>
+                `;
+                tbody.appendChild(tr);
+                updateRowRatio(idx);
+            }
+
+            updateRowButtonsState();
+        }
+
+        function handleInputKeydown(event, field, idx) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                if (field === 'i') {
+                    const nextV = document.getElementById(`input-v-${idx}`);
+                    if (nextV) nextV.focus();
+                } else {
+                    const nextI = document.getElementById(`input-i-${idx + 1}`);
+                    if (nextI) {
+                        nextI.focus();
+                    } else {
+                        analyzeData();
+                    }
+                }
+            }
+        }
+
+        function setRowCount(count) {
+            if (count < 5 || count > 8) return;
+            hideMessage();
+            const existing = getCurrentRawValues();
+            rowCount = count;
+            buildTableRows(existing);
+        }
+
+        function updateRowButtonsState() {
+            [5, 6, 7, 8].forEach(num => {
+                const btn = document.getElementById(`btn-rows-${num}`);
+                if (!btn) return;
+                if (rowCount === num) {
+                    btn.className = 'text-xs font-bold px-2.5 py-1.5 rounded-lg bg-blue-600 text-white border border-blue-600 shadow-xs cursor-pointer';
+                } else {
+                    btn.className = 'text-xs font-bold px-2.5 py-1.5 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300 cursor-pointer';
+                }
+            });
+        }
+
+        function updateRowRatio(idx) {
+            const elI = document.getElementById(`input-i-${idx}`);
+            const elV = document.getElementById(`input-v-${idx}`);
+            const ratioCell = document.getElementById(`ratio-${idx}`);
+            if (!elI || !elV || !ratioCell) return;
+
+            const iVal = parseFloat(elI.value);
+            const vVal = parseFloat(elV.value);
+
+            if (!isNaN(iVal) && !isNaN(vVal) && iVal > 0) {
+                const iAmps = currentUnit === 'mA' ? iVal / 1000 : iVal;
+                const r = vVal / iAmps;
+                ratioCell.textContent = r >= 1000 ? (r / 1000).toFixed(2) + ' kΩ' : r.toFixed(1) + ' Ω';
+            } else {
+                ratioCell.textContent = '—';
+            }
+        }
+
+        function handleUnitChange() {
+            const sel = document.getElementById('current-unit');
+            currentUnit = sel.value;
+            document.getElementById('th-unit-i').textContent = currentUnit;
+            for (let idx = 0; idx < rowCount; idx++) {
+                updateRowRatio(idx);
+            }
+            if (lastAnalysis) {
+                analyzeData();
+            } else {
+                drawEmptyGrid();
+            }
+        }
+
+        function getCurrentRawValues() {
+            const arr = [];
+            for (let idx = 0; idx < rowCount; idx++) {
+                const elI = document.getElementById(`input-i-${idx}`);
+                const elV = document.getElementById(`input-v-${idx}`);
+                arr.push({
+                    i: elI ? elI.value : '',
+                    v: elV ? elV.value : ''
+                });
+            }
+            return arr;
+        }
+
+        function clearInputs() {
+            hideMessage();
+            buildTableRows(null);
+            resetAnalysisOutput();
+            const firstInput = document.getElementById('input-i-0');
+            if (firstInput) firstInput.focus();
+        }
+
+        // =========================================================================
+        // ΠΡΟΑΙΡΕΤΙΚΑ ΕΝΔΕΙΚΤΙΚΑ ΠΑΡΑΔΕΙΓΜΑΤΑ ΜΕΤΡΗΣΕΩΝ
+        // =========================================================================
+        function loadPreset(presetName) {
+            hideMessage();
+            const unitSel = document.getElementById('current-unit');
+
+            if (presetName === 'resistor') {
+                currentUnit = 'A';
+                unitSel.value = 'A';
+                document.getElementById('th-unit-i').textContent = 'A';
+                rowCount = 5;
+                buildTableRows([
+                    { i: '0.10', v: '1.50' },
+                    { i: '0.20', v: '3.02' },
+                    { i: '0.30', v: '4.48' },
+                    { i: '0.40', v: '6.05' },
+                    { i: '0.50', v: '7.50' }
+                ]);
+            } else if (presetName === 'led') {
+                currentUnit = 'mA';
+                unitSel.value = 'mA';
+                document.getElementById('th-unit-i').textContent = 'mA';
+                rowCount = 6;
+                buildTableRows([
+                    { i: '0.1', v: '1.50' },
+                    { i: '1.2', v: '1.75' },
+                    { i: '4.5', v: '1.88' },
+                    { i: '11.0', v: '1.96' },
+                    { i: '20.5', v: '2.03' },
+                    { i: '32.0', v: '2.09' }
+                ]);
+            } else if (presetName === 'bulb') {
+                currentUnit = 'A';
+                unitSel.value = 'A';
+                document.getElementById('th-unit-i').textContent = 'A';
+                rowCount = 5;
+                buildTableRows([
+                    { i: '0.10', v: '0.80' },
+                    { i: '0.18', v: '2.10' },
+                    { i: '0.24', v: '3.80' },
+                    { i: '0.29', v: '5.90' },
+                    { i: '0.33', v: '8.40' }
+                ]);
+            } else if (presetName === 'battery1') {
+                currentUnit = 'A';
+                unitSel.value = 'A';
+                document.getElementById('th-unit-i').textContent = 'A';
+                rowCount = 5;
+                buildTableRows([
+                    { i: '0.20', v: '4.20' },
+                    { i: '0.40', v: '3.90' },
+                    { i: '0.60', v: '3.58' },
+                    { i: '0.80', v: '3.31' },
+                    { i: '1.00', v: '3.00' }
+                ]);
+            } else if (presetName === 'battery2') {
+                currentUnit = 'A';
+                unitSel.value = 'A';
+                document.getElementById('th-unit-i').textContent = 'A';
+                rowCount = 5;
+                buildTableRows([
+                    { i: '0.30', v: '8.34' },
+                    { i: '0.60', v: '7.68' },
+                    { i: '0.90', v: '7.01' },
+                    { i: '1.20', v: '6.36' },
+                    { i: '1.50', v: '5.70' }
+                ]);
+            }
+            analyzeData();
+        }
+
+        // =========================================================================
+        // ΣΧΕΔΙΑΣΗ ΗΛΕΚΤΡΙΚΩΝ ΚΥΚΛΩΜΑΤΩΝ (SVG)
+        // =========================================================================
+        function renderCircuitSVG(type) {
+            const container = document.getElementById('circuit-svg-container');
+            if (!container) return;
+            if (type === 'dipole') {
+                container.innerHTML = `
+                    <svg viewBox="0 0 420 220" class="w-full max-w-md h-auto select-none">
+                        <rect x="65" y="45" width="270" height="125" fill="none" stroke="#334155" stroke-width="2.5" rx="4"/>
+                        <rect x="42" y="82" width="46" height="50" fill="#f8fafc" stroke="none"/>
+                        <line x1="65" y1="75" x2="65" y2="96" stroke="#334155" stroke-width="2.5"/>
+                        <line x1="47" y1="96" x2="83" y2="96" stroke="#0f172a" stroke-width="3.5"/>
+                        <line x1="55" y1="106" x2="75" y2="106" stroke="#0f172a" stroke-width="2.5"/>
+                        <line x1="47" y1="116" x2="83" y2="116" stroke="#0f172a" stroke-width="3.5"/>
+                        <line x1="55" y1="126" x2="75" y2="126" stroke="#0f172a" stroke-width="2.5"/>
+                        <line x1="65" y1="126" x2="65" y2="145" stroke="#334155" stroke-width="2.5"/>
+                        <line x1="43" y1="128" x2="87" y2="86" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+                        <text x="16" y="106" font-size="11" font-weight="700" fill="#1e3a8a">Πηγή</text>
+                        <text x="12" y="120" font-size="10" font-weight="600" fill="#475569">μεταβλ. V</text>
+                        <text x="48" y="88" font-size="12" font-weight="800" fill="#dc2626">+</text>
+                        <text x="49" y="138" font-size="13" font-weight="800" fill="#2563eb">−</text>
+                        <circle cx="155" cy="45" r="18" fill="#ffffff" stroke="#0284c7" stroke-width="2.5"/>
+                        <text x="155" y="50" text-anchor="middle" font-size="14" font-weight="800" fill="#0284c7">A</text>
+                        <text x="155" y="20" text-anchor="middle" font-size="10" font-weight="600" fill="#0369a1">Αμπερόμετρο (σε σειρά)</text>
+                        <line x1="210" y1="45" x2="255" y2="45" stroke="#2563eb" stroke-width="2.5" marker-end="url(#arrow-blue)"/>
+                        <text x="232" y="36" text-anchor="middle" font-size="12" font-weight="700" fill="#2563eb">i</text>
+                        <rect x="313" y="75" width="44" height="65" fill="#f8fafc" stroke="none"/>
+                        <rect x="317" y="80" width="36" height="55" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="2.5"/>
+                        <text x="335" y="112" text-anchor="middle" font-size="12" font-weight="800" fill="#92400e">Δίπολο</text>
+                        <circle cx="335" cy="65" r="3.5" fill="#0f172a"/>
+                        <circle cx="335" cy="150" r="3.5" fill="#0f172a"/>
+                        <polyline points="335,65 390,65 390,150 335,150" fill="none" stroke="#059669" stroke-width="2" stroke-dasharray="4 2"/>
+                        <circle cx="390" cy="107" r="18" fill="#ffffff" stroke="#059669" stroke-width="2.5"/>
+                        <text x="390" y="112" text-anchor="middle" font-size="14" font-weight="800" fill="#059669">V</text>
+                        <text x="362" y="192" text-anchor="middle" font-size="10" font-weight="600" fill="#047857">Βολτόμετρο (παράλληλα)</text>
+                        <defs>
+                            <marker id="arrow-blue" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
+                            </marker>
+                        </defs>
+                    </svg>
+                `;
+            } else {
+                container.innerHTML = `
+                    <svg viewBox="0 0 430 230" class="w-full max-w-md h-auto select-none">
+                        <rect x="115" y="45" width="255" height="135" fill="none" stroke="#334155" stroke-width="2.5" rx="4"/>
+                        <rect x="85" y="72" width="60" height="82" rx="8" fill="#eef2ff" stroke="#4f46e5" stroke-width="2" stroke-dasharray="4 3"/>
+                        <text x="115" y="65" text-anchor="middle" font-size="10" font-weight="700" fill="#3730a3">Πραγματική Πηγή (E, r)</text>
+                        <rect x="103" y="80" width="24" height="32" fill="#eef2ff"/>
+                        <line x1="99" y1="88" x2="131" y2="88" stroke="#0f172a" stroke-width="3.5"/>
+                        <line x1="106" y1="98" x2="124" y2="98" stroke="#0f172a" stroke-width="2.5"/>
+                        <text x="92" y="85" font-size="12" font-weight="800" fill="#dc2626">+</text>
+                        <text x="133" y="96" font-size="12" font-weight="800" fill="#312e81">E</text>
+                        <rect x="108" y="114" width="14" height="28" fill="#ffffff" stroke="#4f46e5" stroke-width="2"/>
+                        <text x="132" y="132" font-size="12" font-weight="800" fill="#312e81">r</text>
+                        <circle cx="115" cy="58" r="3.5" fill="#0f172a"/>
+                        <circle cx="115" cy="166" r="3.5" fill="#0f172a"/>
+                        <polyline points="115,58 45,58 45,166 115,166" fill="none" stroke="#059669" stroke-width="2"/>
+                        <circle cx="45" cy="112" r="18" fill="#ffffff" stroke="#059669" stroke-width="2.5"/>
+                        <text x="45" y="117" text-anchor="middle" font-size="14" font-weight="800" fill="#059669">V</text>
+                        <text x="45" y="185" text-anchor="middle" font-size="10" font-weight="700" fill="#047857">Πολική Τάση V</text>
+                        <circle cx="240" cy="45" r="18" fill="#ffffff" stroke="#0284c7" stroke-width="2.5"/>
+                        <text x="240" y="50" text-anchor="middle" font-size="14" font-weight="800" fill="#0284c7">A</text>
+                        <text x="240" y="20" text-anchor="middle" font-size="10" font-weight="600" fill="#0369a1">Αμπερόμετρο</text>
+                        <line x1="285" y1="45" x2="325" y2="45" stroke="#2563eb" stroke-width="2.5" marker-end="url(#arrow-blue2)"/>
+                        <text x="305" y="36" text-anchor="middle" font-size="12" font-weight="700" fill="#2563eb">i</text>
+                        <rect x="358" y="80" width="24" height="64" fill="#f8fafc"/>
+                        <rect x="361" y="84" width="18" height="56" fill="#fff7ed" stroke="#ea580c" stroke-width="2.5"/>
+                        <line x1="348" y1="134" x2="394" y2="90" stroke="#ea580c" stroke-width="2.2" marker-end="url(#arrow-orange)"/>
+                        <text x="403" y="116" font-size="11" font-weight="800" fill="#9a3412">R</text>
+                        <text x="370" y="198" text-anchor="middle" font-size="10" font-weight="600" fill="#9a3412">Ροοστάτης</text>
+                        <defs>
+                            <marker id="arrow-blue2" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
+                            </marker>
+                            <marker id="arrow-orange" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                <path d="M 0 1 L 10 5 L 0 9 z" fill="#ea580c"/>
+                            </marker>
+                        </defs>
+                    </svg>
+                `;
+            }
+        }
+
+        // =========================================================================
+        // ΜΑΘΗΜΑΤΙΚΗ ΑΝΑΛΥΣΗ & ΓΡΑΜΜΙΚΗ ΠΑΛΙΝΔΡΟΜΗΣΗ (LEAST SQUARES)
+        // =========================================================================
+        function linearRegression(pts, xKey = 'xAmps') {
+            const n = pts.length;
+            let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0, sumYY = 0;
+
+            for (const p of pts) {
+                const x = p[xKey];
+                const y = p.y;
+                sumX += x;
+                sumY += y;
+                sumXY += x * y;
+                sumXX += x * x;
+                sumYY += y * y;
+            }
+
+            const denom = n * sumXX - sumX * sumX;
+            const slope = denom !== 0 ? (n * sumXY - sumX * sumY) / denom : 0;
+            const intercept = (sumY - slope * sumX) / n;
+
+            const meanY = sumY / n;
+            let ssTot = 0, ssRes = 0;
+            for (const p of pts) {
+                const x = p[xKey];
+                const yPred = slope * x + intercept;
+                ssTot += Math.pow(p.y - meanY, 2);
+                ssRes += Math.pow(p.y - yPred, 2);
+            }
+            const rSquared = ssTot > 0 ? Math.max(0, 1 - ssRes / ssTot) : 1;
+
+            const slopeOrigin = sumXX !== 0 ? sumXY / sumXX : 0;
+            let ssResOrigin = 0;
+            for (const p of pts) {
+                const x = p[xKey];
+                ssResOrigin += Math.pow(p.y - slopeOrigin * x, 2);
+            }
+            const rSquaredOrigin = ssTot > 0 ? Math.max(0, 1 - ssResOrigin / ssTot) : 1;
+
+            return { slope, intercept, rSquared, slopeOrigin, rSquaredOrigin };
+        }
+
+        function analyzeData() {
+            hideMessage();
+            const points = [];
+
+            for (let idx = 0; idx < rowCount; idx++) {
+                const rawI = document.getElementById(`input-i-${idx}`).value.trim();
+                const rawV = document.getElementById(`input-v-${idx}`).value.trim();
+
+                if (rawI === '' && rawV === '') continue;
+                if (rawI === '' || rawV === '') {
+                    showMessage(`Στη γραμμή ${idx + 1} λείπει μία από τις δύο τιμές (Ένταση i ή Τάση V).`, 'error');
+                    return;
+                }
+
+                const iVal = parseFloat(rawI);
+                const vVal = parseFloat(rawV);
+
+                if (isNaN(iVal) || isNaN(vVal) || iVal < 0 || vVal < 0) {
+                    showMessage(`Παρακαλώ εισάγετε έγκυρους μη αρνητικούς αριθμούς στη γραμμή ${idx + 1}.`, 'error');
+                    return;
+                }
+
+                const iAmps = currentUnit === 'mA' ? iVal / 1000 : iVal;
+                points.push({
+                    xDisplay: iVal,
+                    xAmps: iAmps,
+                    y: vVal
+                });
+            }
+
+            if (points.length < 5) {
+                showMessage(`Έχετε καταχωρίσει ${points.length} έγκυρες μετρήσεις. Απαιτούνται τουλάχιστον 5 μετρήσεις (έως 8) για αξιόπιστη γραφική παράσταση.`, 'warning');
+                return;
+            }
+
+            points.sort((a, b) => a.xAmps - b.xAmps);
+
+            const regAmps = linearRegression(points, 'xAmps');
+            const regDisplay = linearRegression(points, 'xDisplay');
+
+            if (currentMode === 'dipole') {
+                analyzeDipole(points, regAmps, regDisplay);
+            } else {
+                analyzeEMF(points, regAmps, regDisplay);
+            }
+        }
+
+        function analyzeDipole(points, regAmps, regDisplay) {
+            const ratios = points.filter(p => p.xAmps > 0).map(p => p.y / p.xAmps);
+            const firstR = ratios[0];
+            const lastR = ratios[ratios.length - 1];
+            const ratioChange = (lastR - firstR) / firstR;
+
+            const n = points.length;
+            const half = Math.floor(n / 2);
+            const slopeLow = (points[half].y - points[0].y) / Math.max(1e-9, points[half].xAmps - points[0].xAmps);
+            const slopeHigh = (points[n - 1].y - points[half].y) / Math.max(1e-9, points[n - 1].xAmps - points[half].xAmps);
+
+            let dipoleType = '';
+            let badgeColor = '';
+            let conclusionHTML = '';
+            let curveType = 'smooth';
+
+            if (regAmps.rSquaredOrigin >= 0.992 && Math.abs(ratioChange) < 0.14) {
+                dipoleType = 'Ωμικός Αντιστάτης';
+                badgeColor = 'bg-emerald-100 text-emerald-800 border-emerald-300';
+                curveType = 'linear_origin';
+
+                const resistance = regAmps.slopeOrigin;
+                const rFormatted = resistance >= 1000 ? `${(resistance / 1000).toFixed(3)} kΩ` : `${resistance.toFixed(2)} Ω`;
+
+                conclusionHTML = `
+                    <div class="p-4 rounded-xl bg-emerald-50/70 border border-emerald-200">
+                        <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                            <span class="text-xs font-bold uppercase tracking-wider text-emerald-700">Ταυτοποίηση Διπόλου</span>
+                            <span class="px-3 py-1 rounded-full text-xs font-extrabold border ${badgeColor}">${dipoleType}</span>
+                        </div>
+                        <p class="text-sm text-slate-700 leading-relaxed mb-3">
+                            Η γραφική παράσταση <strong>V(i)</strong> (και αντίστοιχα η <strong>i(V)</strong>) είναι <strong>ευθεία γραμμή που διέρχεται από την αρχή των αξόνων (0,0)</strong> (συντελεστής γραμμικότητας R² = ${regAmps.rSquaredOrigin.toFixed(4)}). Ο λόγος <em>V / i</em> παραμένει πρακτικά σταθερός, άρα το δίπολο υπακούει στον <strong>Νόμο του Ohm</strong>.
+                        </p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div class="bg-white p-3 rounded-lg border border-emerald-200/80">
+                                <div class="text-xs text-slate-500 font-medium">Υπολογισμένη Αντίσταση (R = ΔV / Δi)</div>
+                                <div class="text-xl font-extrabold text-emerald-700 mt-0.5">${rFormatted}</div>
+                            </div>
+                            <div class="bg-white p-3 rounded-lg border border-emerald-200/80">
+                                <div class="text-xs text-slate-500 font-medium">Εξίσωση Χαρακτηριστικής</div>
+                                <div class="text-sm font-mono font-bold text-slate-800 mt-1.5">V = ${resistance.toFixed(2)} · i</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (slopeHigh < slopeLow * 0.65 && ratioChange < -0.25) {
+                dipoleType = 'Κρυσταλλοδίοδος ή LED';
+                badgeColor = 'bg-amber-100 text-amber-800 border-amber-300';
+                curveType = 'smooth';
+
+                const highPts = points.slice(-2);
+                const dy = highPts[1].y - highPts[0].y;
+                const dx = highPts[1].xAmps - highPts[0].xAmps;
+                const kneeV = dx > 0 ? Math.max(0, highPts[1].y - (dy / dx) * highPts[1].xAmps) : points[Math.floor(n / 2)].y;
+
+                conclusionHTML = `
+                    <div class="p-4 rounded-xl bg-amber-50/70 border border-amber-200">
+                        <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                            <span class="text-xs font-bold uppercase tracking-wider text-amber-700">Ταυτοποίηση Διπόλου</span>
+                            <span class="px-3 py-1 rounded-full text-xs font-extrabold border ${badgeColor}">${dipoleType}</span>
+                        </div>
+                        <p class="text-sm text-slate-700 leading-relaxed mb-3">
+                            Το δίπολο παρουσιάζει <strong>μη γραμμική (εκθετική) συμπεριφορά</strong> και δεν υπακούει στον νόμο του Ohm. Κάτω από μια χαρακτηριστική <strong>τάση κατωφλίου (V<sub>γ</sub>)</strong> η ένταση του ρεύματος είναι αμελητέα, ενώ πάνω από αυτήν το ρεύμα αυξάνεται απότομα με μικρή αύξηση της τάσης.
+                        </p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div class="bg-white p-3 rounded-lg border border-amber-200/80">
+                                <div class="text-xs text-slate-500 font-medium">Εκτιμώμενη Τάση Κατωφλίου (V<sub>γ</sub>)</div>
+                                <div class="text-xl font-extrabold text-amber-700 mt-0.5">≈ ${kneeV.toFixed(2)} V</div>
+                            </div>
+                            <div class="bg-white p-3 rounded-lg border border-amber-200/80">
+                                <div class="text-xs text-slate-500 font-medium">Μεταβολή Αντίστασης (V / i)</div>
+                                <div class="text-sm font-bold text-slate-800 mt-1">Μειώνεται απότομα (${firstR.toFixed(0)} Ω → ${lastR.toFixed(0)} Ω)</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                dipoleType = 'Λαμπτήρας Πυρακτώσεως';
+                badgeColor = 'bg-rose-100 text-rose-800 border-rose-300';
+                curveType = 'smooth';
+
+                conclusionHTML = `
+                    <div class="p-4 rounded-xl bg-rose-50/70 border border-rose-200">
+                        <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                            <span class="text-xs font-bold uppercase tracking-wider text-rose-700">Ταυτοποίηση Διπόλου</span>
+                            <span class="px-3 py-1 rounded-full text-xs font-extrabold border ${badgeColor}">${dipoleType}</span>
+                        </div>
+                        <p class="text-sm text-slate-700 leading-relaxed mb-3">
+                            Η καμπύλη <strong>V(i)</strong> είναι <strong>μη γραμμική και κάμπτεται προς τα πάνω</strong> (ενώ η <strong>i(V)</strong> κάμπτεται προς τα κάτω), καθώς η κλίση αυξάνεται όσο μεγαλώνει η ένταση του ρεύματος. Καθώς αυξάνεται το ρεύμα, αυξάνεται η <strong>θερμοκρασία του μεταλλικού νήματος</strong>, με αποτέλεσμα να αυξάνεται η ηλεκτρική του αντίσταση <em>R = V / i</em>.
+                        </p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div class="bg-white p-3 rounded-lg border border-rose-200/80">
+                                <div class="text-xs text-slate-500 font-medium">Αντίσταση «Ψυχρού» Νήματος (1η μέτρ.)</div>
+                                <div class="text-lg font-extrabold text-slate-800 mt-0.5">${firstR.toFixed(2)} Ω</div>
+                            </div>
+                            <div class="bg-white p-3 rounded-lg border border-rose-200/80">
+                                <div class="text-xs text-slate-500 font-medium">Αντίσταση «Θερμού» Νήματος (τελ. μέτρ.)</div>
+                                <div class="text-lg font-extrabold text-rose-700 mt-0.5">${lastR.toFixed(2)} Ω</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            document.getElementById('analysis-output').innerHTML = conclusionHTML;
+
+            lastAnalysis = {
+                mode: 'dipole',
+                points,
+                regAmps,
+                regDisplay,
+                curveType,
+                dipoleType
+            };
+            drawGraph(lastAnalysis);
+        }
+
+        function analyzeEMF(points, regAmps, regDisplay) {
+            const emf = regAmps.intercept;
+            const rInternal = -regAmps.slope;
+            const iShortCircuit = rInternal > 0 ? emf / rInternal : Infinity;
+
+            const isValidSource = emf > 0 && rInternal >= 0;
+
+            const conclusionHTML = `
+                <div class="p-4 rounded-xl bg-indigo-50/70 border border-indigo-200">
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                        <span class="text-xs font-bold uppercase tracking-wider text-indigo-700">Χαρακτηριστικά Ηλεκτρικής Πηγής</span>
+                        <span class="px-3 py-1 rounded-full text-xs font-extrabold border bg-indigo-100 text-indigo-800 border-indigo-300">
+                            Νόμος Κλειστού Κυκλώματος: V = E - i·r
+                        </span>
+                    </div>
+                    <p class="text-sm text-slate-700 leading-relaxed mb-3">
+                        Από την ευθεία ελαχίστων τετραγώνων <strong>V(i)</strong> (R² = ${regAmps.rSquared.toFixed(4)}), η <strong>Ηλεκτρεγερτική Δύναμη (E)</strong> προκύπτει από το σημείο τομής με τον κατακόρυφο άξονα (για <em>i = 0</em>), ενώ η <strong>εσωτερική αντίσταση (r)</strong> ισούται με την απόλυτη τιμή της κλίσης (<em>r = |ΔV / Δi|</em>).
+                    </p>
+                    ${!isValidSource ? `<p class="text-xs font-bold text-red-600 mb-3">⚠️ Προσοχή: Οι μετρήσεις δεν παρουσιάζουν φθίνουσα γραμμική σχέση V(i). Ελέγξτε τις τιμές τάσης/έντασης.</p>` : ''}
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div class="bg-white p-3 rounded-lg border border-indigo-200/80">
+                            <div class="text-xs text-slate-500 font-medium">ΗΕΔ Πηγής (E)</div>
+                            <div class="text-xl font-extrabold text-indigo-700 mt-0.5">${emf.toFixed(2)} V</div>
+                        </div>
+                        <div class="bg-white p-3 rounded-lg border border-indigo-200/80">
+                            <div class="text-xs text-slate-500 font-medium">Εσωτερική Αντίσταση (r)</div>
+                            <div class="text-xl font-extrabold text-rose-600 mt-0.5">${Math.max(0, rInternal).toFixed(2)} Ω</div>
+                        </div>
+                        <div class="bg-white p-3 rounded-lg border border-indigo-200/80">
+                            <div class="text-xs text-slate-500 font-medium">Ρεύμα Βραχυκύκλωσης (I<sub>βρ</sub>)</div>
+                            <div class="text-lg font-extrabold text-slate-800 mt-0.5">${isFinite(iShortCircuit) && iShortCircuit > 0 ? iShortCircuit.toFixed(2) + ' A' : '—'}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('analysis-output').innerHTML = conclusionHTML;
+
+            lastAnalysis = {
+                mode: 'emf',
+                points,
+                regAmps,
+                regDisplay,
+                curveType: 'linear_emf',
+                emf,
+                rInternal
+            };
+            drawGraph(lastAnalysis);
+        }
+
+        // =========================================================================
+        // ΣΧΕΔΙΑΣΗ ΓΡΑΦΙΚΗΣ ΠΑΡΑΣΤΑΣΗΣ ΣΕ HTML5 CANVAS (V(i) ΚΑΙ i(V))
+        // =========================================================================
+        function drawEmptyGrid() {
+            const wrapper = document.getElementById('canvas-wrapper');
+            const canvas = document.getElementById('physics-canvas');
+            if (!wrapper || !canvas) return;
+            const dpr = window.devicePixelRatio || 1;
+            const rect = wrapper.getBoundingClientRect();
+            if (rect.width === 0 || rect.height === 0) return;
+
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+
+            const ctx = canvas.getContext('2d');
+            ctx.scale(dpr, dpr);
+
+            const width = rect.width;
+            const height = rect.height;
+            const padLeft = 58, padRight = 28, padTop = 26, padBottom = 48;
+            const plotW = width - padLeft - padRight;
+            const plotH = height - padTop - padBottom;
+
+            ctx.clearRect(0, 0, width, height);
+
+            const steps = 5;
+            for (let s = 0; s <= steps; s++) {
+                const py = padTop + (plotH / steps) * s;
+                ctx.beginPath();
+                ctx.strokeStyle = s === steps ? '#64748b' : '#e2e8f0';
+                ctx.lineWidth = s === steps ? 1.8 : 1;
+                ctx.moveTo(padLeft, py);
+                ctx.lineTo(padLeft + plotW, py);
+                ctx.stroke();
+
+                const px = padLeft + (plotW / steps) * s;
+                ctx.beginPath();
+                ctx.strokeStyle = s === 0 ? '#64748b' : '#e2e8f0';
+                ctx.lineWidth = s === 0 ? 1.8 : 1;
+                ctx.moveTo(px, padTop);
+                ctx.lineTo(px, padTop + plotH);
+                ctx.stroke();
+            }
+
+            const isIv = (currentMode === 'dipole' && graphAxes === 'i_of_V');
+            const xAxisLabel = isIv ? 'Τάση V (V)' : `Ένταση ρεύματος i (${currentUnit})`;
+            const yAxisLabel = isIv ? `Ένταση ρεύματος i (${currentUnit})` : 'Τάση V (V)';
+
+            ctx.fillStyle = '#0f172a';
+            ctx.font = '700 12px Inter, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(xAxisLabel, padLeft + plotW / 2, height - 16);
+
+            ctx.save();
+            ctx.translate(16, padTop + plotH / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText(yAxisLabel, 0, 0);
+            ctx.restore();
+
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '500 13px Inter, sans-serif';
+            ctx.fillText(`Εισάγετε 5–8 εργαστηριακές μετρήσεις για σχεδίαση ${isIv ? 'i(V)' : 'V(i)'}`, padLeft + plotW / 2, padTop + plotH / 2);
+        }
+
+        function drawGraph(analysis) {
+            if (!analysis) {
+                drawEmptyGrid();
+                return;
+            }
+            const wrapper = document.getElementById('canvas-wrapper');
+            const canvas = document.getElementById('physics-canvas');
+            if (!wrapper || !canvas) return;
+            const dpr = window.devicePixelRatio || 1;
+            const rect = wrapper.getBoundingClientRect();
+            if (rect.width === 0 || rect.height === 0) return;
+
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+
+            const ctx = canvas.getContext('2d');
+            ctx.scale(dpr, dpr);
+
+            const width = rect.width;
+            const height = rect.height;
+
+            const padLeft = 58;
+            const padRight = 28;
+            const padTop = 26;
+            const padBottom = 48;
+            const plotW = width - padLeft - padRight;
+            const plotH = height - padTop - padBottom;
+
+            ctx.clearRect(0, 0, width, height);
+
+            const isIv = (analysis.mode === 'dipole' && graphAxes === 'i_of_V');
+
+            const plotPts = analysis.points.map(p => ({
+                gx: isIv ? p.y : p.xDisplay,
+                gy: isIv ? p.xDisplay : p.y
+            })).sort((a, b) => a.gx - b.gx);
+
+            let maxX = Math.max(...plotPts.map(p => p.gx)) * 1.15;
+            let maxY = Math.max(...plotPts.map(p => p.gy)) * 1.18;
+
+            if (analysis.mode === 'emf' && analysis.emf > 0) {
+                maxY = Math.max(maxY, analysis.emf * 1.12);
+                if (analysis.rInternal > 0) {
+                    const iShortDisplay = (analysis.emf / analysis.rInternal) * (currentUnit === 'mA' ? 1000 : 1);
+                    if (iShortDisplay < maxX * 1.45) {
+                        maxX = iShortDisplay * 1.08;
+                    }
+                }
+            }
+            if (maxX <= 0) maxX = 1;
+            if (maxY <= 0) maxY = 1;
+
+            const toPxX = (valX) => padLeft + (valX / maxX) * plotW;
+            const toPxY = (valY) => padTop + plotH - (valY / maxY) * plotH;
+
+            // Πλέγμα & Αριθμητικές Κλίμακες
+            const gridSteps = 5;
+            ctx.lineWidth = 1;
+            ctx.font = '500 11px Inter, sans-serif';
+            ctx.fillStyle = '#475569';
+
+            for (let s = 0; s <= gridSteps; s++) {
+                const valY = (maxY / gridSteps) * s;
+                const py = toPxY(valY);
+                ctx.beginPath();
+                ctx.strokeStyle = s === 0 ? '#334155' : '#e2e8f0';
+                ctx.lineWidth = s === 0 ? 1.8 : 1;
+                ctx.moveTo(padLeft, py);
+                ctx.lineTo(padLeft + plotW, py);
+                ctx.stroke();
+
+                ctx.textAlign = 'right';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(valY.toFixed(valY >= 10 ? 1 : 2), padLeft - 8, py);
+
+                const valX = (maxX / gridSteps) * s;
+                const px = toPxX(valX);
+                ctx.beginPath();
+                ctx.strokeStyle = s === 0 ? '#334155' : '#e2e8f0';
+                ctx.lineWidth = s === 0 ? 1.8 : 1;
+                ctx.moveTo(px, padTop);
+                ctx.lineTo(px, padTop + plotH);
+                ctx.stroke();
+
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'top';
+                ctx.fillText(valX.toFixed(valX >= 10 ? 1 : 2), px, padTop + plotH + 8);
+            }
+
+            // Τίτλοι Αξόνων
+            const xAxisLabel = isIv ? 'Τάση V (V)' : `Ένταση ρεύματος i (${currentUnit})`;
+            const yAxisLabel = isIv ? `Ένταση ρεύματος i (${currentUnit})` : 'Τάση V (V)';
+
+            ctx.fillStyle = '#0f172a';
+            ctx.font = '700 12px Inter, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(xAxisLabel, padLeft + plotW / 2, height - 16);
+
+            ctx.save();
+            ctx.translate(16, padTop + plotH / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText(yAxisLabel, 0, 0);
+            ctx.restore();
+
+            // Σχεδίαση Καμπύλης / Ευθείας Προσαρμογής
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(padLeft, padTop, plotW, plotH);
+            ctx.clip();
+
+            ctx.strokeStyle = '#f43f5e';
+            ctx.lineWidth = 2.8;
+
+            if (analysis.curveType === 'linear_origin') {
+                const slopeDisp = isIv
+                    ? (1 / analysis.regDisplay.slopeOrigin)
+                    : analysis.regDisplay.slopeOrigin;
+                ctx.beginPath();
+                ctx.moveTo(toPxX(0), toPxY(0));
+                ctx.lineTo(toPxX(maxX), toPxY(slopeDisp * maxX));
+                ctx.stroke();
+            } else if (analysis.curveType === 'linear_emf') {
+                const slopeDisp = analysis.regDisplay.slope;
+                const inter = analysis.regDisplay.intercept;
+                ctx.beginPath();
+                ctx.moveTo(toPxX(0), toPxY(inter));
+                ctx.lineTo(toPxX(maxX), toPxY(slopeDisp * maxX + inter));
+                ctx.stroke();
+
+                ctx.fillStyle = '#4f46e5';
+                ctx.beginPath();
+                ctx.arc(toPxX(0), toPxY(inter), 5.5, 0, Math.PI * 2);
+                ctx.fill();
+            } else {
+                const allPts = [{ gx: 0, gy: 0 }, ...plotPts];
+                ctx.beginPath();
+                ctx.moveTo(toPxX(allPts[0].gx), toPxY(allPts[0].gy));
+                for (let k = 0; k < allPts.length - 1; k++) {
+                    const p0 = allPts[k === 0 ? 0 : k - 1];
+                    const p1 = allPts[k];
+                    const p2 = allPts[k + 1];
+                    const p3 = allPts[k + 2 < allPts.length ? k + 2 : k + 1];
+
+                    const cp1x = p1.gx + (p2.gx - p0.gx) / 6;
+                    const cp1y = Math.max(0, p1.gy + (p2.gy - p0.gy) / 6);
+                    const cp2x = p2.gx - (p3.gx - p1.gx) / 6;
+                    const cp2y = Math.max(0, p2.gy - (p3.gy - p1.gy) / 6);
+
+                    ctx.bezierCurveTo(
+                        toPxX(cp1x), toPxY(cp1y),
+                        toPxX(cp2x), toPxY(cp2y),
+                        toPxX(p2.gx), toPxY(p2.gy)
+                    );
+                }
+                ctx.stroke();
+            }
+            ctx.restore();
+
+            if (analysis.curveType === 'linear_emf' && analysis.emf > 0) {
+                const ey = toPxY(analysis.emf);
+                if (ey >= padTop && ey <= padTop + plotH) {
+                    ctx.fillStyle = '#4338ca';
+                    ctx.font = '700 11px Inter, sans-serif';
+                    ctx.textAlign = 'left';
+                    ctx.fillText(`E = ${analysis.emf.toFixed(2)}V`, padLeft + 10, Math.max(padTop + 14, ey - 6));
+                }
+            }
+
+            // Σχεδίαση Πειραματικών Σημείων
+            for (const p of plotPts) {
+                const cx = toPxX(p.gx);
+                const cy = toPxY(p.gy);
+
+                ctx.save();
+                ctx.setLineDash([3, 3]);
+                ctx.strokeStyle = 'rgba(37, 99, 235, 0.35)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.lineTo(cx, padTop + plotH);
+                ctx.moveTo(cx, cy);
+                ctx.lineTo(padLeft, cy);
+                ctx.stroke();
+                ctx.restore();
+
+                ctx.fillStyle = '#2563eb';
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(cx, cy, 5.5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+            }
+        }
+
+        // =========================================================================
+        // ΕΚΘΕΣΗ ΣΥΝΑΡΤΗΣΕΩΝ ΣΤΟ GLOBAL SCOPE & ΑΡΧΙΚΟΠΟΙΗΣΗ
+        // =========================================================================
+        window.switchMode = switchMode;
+        window.setGraphAxes = setGraphAxes;
+        window.transferWorksheetToLab = transferWorksheetToLab;
+        window.hideMessage = hideMessage;
+        window.handleUnitChange = handleUnitChange;
+        window.setRowCount = setRowCount;
+        window.clearInputs = clearInputs;
+        window.analyzeData = analyzeData;
+        window.loadPreset = loadPreset;
+        window.updateRowRatio = updateRowRatio;
+        window.handleInputKeydown = handleInputKeydown;
+
+        window.addEventListener('resize', () => {
+            if (lastAnalysis) {
+                drawGraph(lastAnalysis);
+            } else {
+                drawEmptyGrid();
+            }
+        });
+
+        window.addEventListener('DOMContentLoaded', () => {
+            switchMode('dipole');
+        });
+    </script>
+</body>
+</html>
